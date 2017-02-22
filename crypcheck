@@ -1,0 +1,5 @@
+#!/bin/sh
+#
+prog=cryptcheck
+usage="$prog domainname"
+#

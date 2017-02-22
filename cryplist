@@ -1,0 +1,59 @@
+#!/bin/sh
+#
+prog=cryplist
+usage="$prog domain-name"
+#
+#	Attempt to locate interesting services in the given domain
+#	and generate appropriate exploratory commands.
+#
+#	Needs dig(1). On linux:
+#		apt-get install dnsutils
+#	Mac:
+#
+#	FreeBSD:
+#		pkg install bind-tools
+
+NAME=cryp
+
+TMPDIR=${TMPDIR:-/tmp}
+WRKDIR=$TMPDIR/$prog
+mkdir -p $WRKDIR #2>/dev/null
+rm -rf $WRKDIR/*
+
+case $# in
+1)	domain="$1";	shift;;
+*)
+	echo "$usage" 1>&2
+	exit 1
+esac
+
+dig any $domain >$WRKDIR/digout
+
+mailservers=`
+	awk <$WRKDIR/digout '
+	$4 == "MX" { print $NF}' | sort -u`
+
+webservers=`dig web.$domain www.$domain | awk '
+	$1 ~ /^(web|www)\..*/ && $4 == "A" {
+		print $5}' | sort -u`
+
+for i in $webservers
+do
+	echo ${NAME}_web $i
+done
+
+vpns=`dig vpn.$domain | awk '
+	$1 ~ /^(vpn)\..*/ && $4 == "A" {
+		print $5}' | sort -u`
+
+for i in $vpns
+do
+	echo ${NAME}_vpn $i
+done
+
+for i in $mailservers
+do
+	echo ${NAME}_pop3s $i
+	echo ${NAME}_imaps $i
+done
+

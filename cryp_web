@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+prog=cryp_web
+usage="$prog s1 s2 ..."
+#
+#	Check ssl services on one or more web servers
+
+for i in $*
+do
+	cryp_ssl $1 443
+done

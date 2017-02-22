@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+prog=cryp_ssl
+usage="$prog h [p]"
+#
+#	Check for ssl crypt problems on given host and port
+
+
+TMPDIR=${TMPDIR:-/tmp}
+WRKDIR=$TMPDIR/$prog
+mkdir -p $WRKDIR #2>/dev/null
+rm -rf $WRKDIR/*
+
+case $# in
+1)	h=$1
+	p=443;;
+2)	h=$1
+	p=$2;;
+*)
+	echo "$usage" 1>&2
+	exit 1
+esac
+
+nmap -oX - --script ssl-enum-ciphers -p $p $h |
+	tee $WRKDIR/xml |
+	xmllint --format - 
+
+

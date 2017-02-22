@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+prog=cryp_telnets
+usage="$prog h1 h2 ..."
+#
+#	Check ssl services on imaps service on given host
+
+for i in $*
+do
+	cryp_ssl $1 992
+done
