@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+
+import sys
+import re
+
+def EOF():
+	return (not line)
+
+def nextline():
+	global line
+	line = sys.stdin.readline()
+	if EOF():
+		return False
+	line = line.rstrip('\n')
+	return True
+
+
+def scan_for_key():
+	while nextline():
+		if line[0] == '(':
+			key = line[1:]
+			if key in keys:
+				return key
+
+
+def scan_for_results(path, key, all_values):
+	global results
+	global main_key
+
+	if key:
+		if path:
+			path = path + '/' + key
+		else:
+			path = key
+
+	finish_all_values = False
+	if not all_values:
+		if key in results and all_below_flag[key]:
+			all_values = '|'
+			finish_all_values = True
+
+	while nextline():
+		if line[0] == 'C':	# comment
+			continue
+
+		if line[0] == '(':	# new, deeper field
+			f = line[1:]
+			all_values = scan_for_results(path, f, all_values)
+			continue
+
+		if line[0] == ')':	# end of our field
+			f = line[1:]
+			if f != key:
+				print >>sys.stderr, 'Unmatched closing XML field: ' + str(key) + ' ends with ' + str(f)
+			if finish_all_values:
+				results[key] = all_values
+				return ''
+			return all_values
+
+		if line[0] == 'A':	# attribute
+			l = line[1:].split(" ")
+			attribute = l[0];
+			value = l[1]
+			if attribute in results:
+				results[attribute] = results[attribute] + '|' + value
+			continue
+		if line[0] == '-':	# value
+			value  = line[1:]
+			if value in special:
+				value = special[value]
+			slash = path.find('/')
+			if slash < 0:
+				subpath = ''
+			else:
+				subpath = path[slash+1:]
+			
+			if all_values:
+				all_values = all_values + '|' + value
+				continue
+
+			if key in results:
+				k = key
+			elif subpath and subpath in results:
+				k = subpath
+			else:
+				continue
+			results[k] = results[k] + '|' + value
+			continue
+		print >>sys.stderr, 'Unexpected pyx character: ' + str(line)
+
+
+special = dict()
+special[r"\""] = "&quot;"
+special[r"&"] = "&amp;"
+special[r"'\''"] = "&apos;"
+special[r"<"] = "&lt;"
+special[r">"] = "&gt;"
+
+keys = dict()
+FILE = dict()
+
+fieldsfn = sys.argv[1]
+for line in open(fieldsfn):
+	f = line.rstrip('\n').split("	")
+	keys[f[0]] = f[1:]
+	FILE[str(f[0])] = open(f[0], "w");
+
+
+while 1:
+	main_key = scan_for_key()
+	if not main_key:
+		exit(0);
+	fields = keys[main_key]
+	results = dict()
+	all_below_flag = dict()
+	ordered = []
+	for f in fields:
+		if f[-1] == '/':
+			f = f[:-1]
+			all_below_flag[f] = True
+		else:
+			all_below_flag[f] = False
+		results[f] = ''
+		ordered.append(f)
+
+	scan_for_results('', main_key, False)
+
+	match_empty_lines = re.compile(r"\|\\n[ 	]*")
+	match_leading_bars = re.compile(r"^[|]*")
+	file = str(main_key)
+	record = '' 
+	for r in ordered:
+		res = results[r]
+		res = re.sub(match_empty_lines, '', res)
+		res = re.sub(match_leading_bars, '', res)
+		if record:
+			record = record + '	'
+		record = record + res
+	record = record + '\n'
+	FILE[main_key].writelines(record)

@@ -13,7 +13,7 @@ rm -rf $WRKDIR/*
 
 case $# in
 1)	h=$1
-	p=443;;
+	p=https;;
 2)	h=$1
 	p=$2;;
 *)
@@ -21,8 +21,48 @@ case $# in
 	exit 1
 esac
 
-nmap -oX - --script ssl-enum-ciphers -p $p $h |
-	tee $WRKDIR/xml |
-	xmllint --format - 
 
+cat <<!EOF >$WRKDIR/nmap_error_fields
+warnings
+!EOF
+
+# Current test only reports issues known to nmap
+#
+#	Cheesy xml processing: we use sed to extract all the SSL
+#	warnings and combine them into a single line.
+
+nmap -oX - --script ssl-enum-ciphers -p $p $h	|
+	xmllint --format - 			| tee $WRKDIR/nmapxml |
+	awk -v OFS='	' '
+	/address addr/ {
+		n=split($2, fields, "\"")
+		addr = fields[2]
+		next
+	}
+
+	/protocol=".* portid="/ {
+		n=split($2, fields, "\"")
+		protocol = fields[2]
+		n=split($3, fields, "\"")
+		port = fields[2]
+		next
+	}
+		
+
+	/key="warnings"/ {
+		copying = 1
+		next
+	}
+
+	copying == 0 { next }
+
+	/<\/table>/ {
+		copying = 0
+		next
+	}
+
+	{	error = $0
+		gsub(/ *<\/?elem>/, "", error)
+		print addr, protocol, port, "nmap", error
+	}' | sort -u
 

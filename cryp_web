@@ -7,5 +7,5 @@ usage="$prog s1 s2 ..."
 
 for i in $*
 do
-	cryp_ssl $1 443
+	cryp_ssl $1 https
 done

@@ -1,0 +1,31 @@
+Software needed
+
+FreeBSD - packages needed
+
+pkg install xmlstarlet	provides XML processing stuff for nmap output
+pkg install nmap	reports common ssl problems
+pkg install python	if you don't have it already
+pkg install bind-tools	for cryplist
+pkg install go		for zgrab
+
+
+Linux - packages needed
+pkg install bind-tools	for cryplist
+(more needed....)
+
+Add to .profile:
+
+export GOROOT=/usr/local/go
+export GOPATH=$GOROOT/bin
+export PATH=$PATH:$GOPATH
+
+. .profile
+
+
+The new tests are obtained with a go program named "zgrab":
+
+sudo -E go get github.com/zmap/zgrab
+cd $GOPATH/src/github.com/zmap/zgrab
+sudo -E go build
+sudo -E make install
+

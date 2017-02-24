@@ -3,15 +3,15 @@
 prog=cryplist
 usage="$prog domain-name"
 #
-#	Attempt to locate interesting services in the given domain
-#	and generate appropriate exploratory commands.
+#	Create a suggested list of tests for a domain, based on various 
+#	domain names. Very crude, but a good place to start.
 #
 #	Needs dig(1). On linux:
 #		apt-get install dnsutils
-#	Mac:
-#
 #	FreeBSD:
 #		pkg install bind-tools
+#	Mac:
+#
 
 NAME=cryp
 
@@ -27,33 +27,42 @@ case $# in
 	exit 1
 esac
 
-dig any $domain >$WRKDIR/digout
 
-mailservers=`
-	awk <$WRKDIR/digout '
-	$4 == "MX" { print $NF}' | sort -u`
-
-webservers=`dig web.$domain www.$domain | awk '
+dig web.$domain www.$domain | awk '
 	$1 ~ /^(web|www)\..*/ && $4 == "A" {
-		print $5}' | sort -u`
-
-for i in $webservers
+		print $5}' | sort -u |
+while read webserver
 do
-	echo ${NAME}_web $i
+	echo ${NAME}_web $webserver
 done
 
-vpns=`dig vpn.$domain | awk '
+
+dig vpn.$domain | awk '
 	$1 ~ /^(vpn)\..*/ && $4 == "A" {
-		print $5}' | sort -u`
-
-for i in $vpns
+		print $5}' | sort -u |
+while read vpnserver
 do
-	echo ${NAME}_vpn $i
+	echo ${NAME}_vpn $vpnserver
 done
 
-for i in $mailservers
+
+dig ftp.$domain | awk '
+	$1 ~ /^(vpn)\..*/ && $4 == "A" {
+		print $5}' | sort -u |
+while read ftpservers
 do
-	echo ${NAME}_pop3s $i
-	echo ${NAME}_imaps $i
+	echo ${NAME}_ftps $ftpservers
 done
 
+
+dig any $domain smtp.$domain smtps.$domain \
+	imap.$domain imaps.$domain pop3.$domain pop3s.$domain >$WRKDIR/digout
+
+awk <$WRKDIR/digout '
+	$4 == "MX" { print $NF}' | sort -u |
+while read mailserver
+do
+	echo ${NAME}_pop3s $mailserver
+	echo ${NAME}_imaps $mailserver
+	echo ${NAME}_smtps $mailserver
+done

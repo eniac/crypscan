@@ -7,5 +7,5 @@ usage="$prog h1 h2 ..."
 
 for i in $*
 do
-	cryp_ssl $1 995
+	cryp_ssl $1 pop3s
 done

@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+prog=cryp_smtps
+usage="$prog h1 h2 ..."
+#
+#	Check ssl services on imaps service on given host
+
+exit 0	# XXX stub: hangs are the moment.  nmap issue?
+
+for i in $*
+do
+	cryp_ssl $1 smtps
+done
