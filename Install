@@ -11,6 +11,7 @@ pkg install go		for zgrab
 
 Linux - packages needed
 pkg install bind-tools	for cryplist
+sudo apt-get install jq nmap
 (more needed....)
 
 Add to .profile:
@@ -23,9 +24,8 @@ export PATH=$PATH:$GOPATH
 
 
 The new tests are obtained with a go program named "zgrab":
-
-sudo -E go get github.com/zmap/zgrab
-cd $GOPATH/src/github.com/zmap/zgrab
-sudo -E go build
-sudo -E make install
+git clone --depth 1 https://github.com/beorn7/perks $GOPATH/src/github.com/beorn7/perks # workaround for go get failing on this repo
+go get gopkg.in/eniac/zgrab.v0
+cd $GOPATH/src/gopkg.in/eniac/zgrab.v0
+go build
 
