@@ -4,6 +4,8 @@ administrators in mind.
 
 Scripts are provided for a number of different protocols and display usage on execution with no arguments.
 
+To scan for the recommendations in "Measuring small subgroup attacks against Diffie-Hellman" use cryp_ssl as below.
+
 Example:
 
 ```
