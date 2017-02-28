@@ -11,8 +11,13 @@ pkg install go		for zgrab
 
 Linux - packages needed
 pkg install bind-tools	for cryplist
+
+
+Ubuntu:
+Prequisite: Working go installation
+
+
 sudo apt-get install jq nmap
-(more needed....)
 
 Add to .profile:
 
