@@ -109,7 +109,7 @@ esac
 
 	tmp_out=`echo $h,$d | $CUSTOM_ZGRAB --tls --port $p --dhe-ciphers --tls-invalid-kex $scan --tls-verbose 2>/dev/null | head -n 1`
 	failure=`echo $tmp_out | jq '.data.tls | keys | contains(["server_finished"])'`
-	if [ $failure = "true" ] ; then
+	if [ "$failure" = "true" ] ; then
 	    echo "WARNING: Server negotiated DH key exchange with value $scan_str"
 	fi
 done
